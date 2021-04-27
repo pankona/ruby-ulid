@@ -105,10 +105,14 @@ class ULID
       unless string.size == ENCODED_ID_LENGTH
         raise "parsable string must be #{ENCODED_ID_LENGTH} characters, but actually given #{string.size} characters"
       end
-      timestamp = string.slice(0, TIME_PART_LENGTH)
-      randomness = string.slice(TIME_PART_LENGTH, RANDOMNESS_PART_LENGTH)
-      milliseconds = Integer::Base.parse(timestamp, ENCODING_CHARS)
-      entropy = Integer::Base.parse(randomness, ENCODING_CHARS)
+      integer = Integer::Base.parse(string, ENCODING_CHARS)
+      octets = integer.digits(256).reverse!
+      time_octets = octets.slice(0, TIME_OCTETS_LENGTH)
+      randomness_octets = octets.slice(TIME_OCTETS_LENGTH, RANDOMNESS_OCTETS_LENGTH)
+      # milliseconds = Integer::Base.parse(timestamp, ENCODING_CHARS)
+      # entropy = Integer::Base.parse(randomness, ENCODING_CHARS)
+      milliseconds = inverse_of_digits(time_octets)
+      entropy = inverse_of_digits(randomness_octets)
     rescue => err
       raise ParserError, "parsing failure as #{err.inspect} for given #{string.inspect}"
     end
